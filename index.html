@@ -57,18 +57,18 @@
   <main>
     <section class="stage" aria-label="Interactive three-dimensional velocity vector visualization">
       <canvas id="scene">Your browser needs Canvas support to display the interactive model.</canvas>
-      <div class="stage-note"><strong>Velocity space · Galactic coordinates</strong><span>The Galactic plane is the circular grid. Arrow lengths share one scale.</span></div>
+      <div class="stage-note"><strong>Read the arrows head-to-tail</strong><span>Start at 0. Each numbered endpoint is the cumulative velocity after that step. Pink is the direct sum of steps 1 + 2.</span></div>
       <div class="gesture">Drag to rotate · Scroll to zoom · Double-click to reset</div>
     </section>
     <aside>
-      <h2>Reference-frame controls</h2>
-      <p class="intro">Toggle the components. Their head-to-tail sum produces the observer’s motion relative to the CMB.</p>
+      <h2>What each arrow means</h2>
+      <p class="intro"><strong>“Measured against”</strong> means treating that reference frame as stationary. These are velocities, not paths or attractions.</p>
       <section class="group">
         <h3>Layers · speed in km/s</h3>
-        <label class="toggle"><input id="showLG" type="checkbox" checked /><span class="swatch" style="background:var(--cosmic)"></span><span>Local Group / CMB</span><small>627</small></label>
-        <label class="toggle"><input id="showSun" type="checkbox" checked /><span class="swatch" style="background:var(--local)"></span><span>Sun / Local Group</span><small>308</small></label>
-        <label class="toggle"><input id="showResult" type="checkbox" checked /><span class="swatch" style="background:var(--result)"></span><span>Solar System / CMB</span><small>≈370</small></label>
-        <label class="toggle"><input id="showEarth" type="checkbox" checked /><span class="swatch" style="background:var(--earth)"></span><span>Earth orbital velocity</span><small>29.8</small></label>
+        <label class="toggle"><input id="showLG" type="checkbox" checked /><span class="swatch" style="background:var(--cosmic)"></span><span><b>0→1 · Local Group</b> measured against the CMB</span><small>627</small></label>
+        <label class="toggle"><input id="showSun" type="checkbox" checked /><span class="swatch" style="background:var(--local)"></span><span><b>1→2 · Sun</b> measured inside the Local Group</span><small>308</small></label>
+        <label class="toggle"><input id="showResult" type="checkbox" checked /><span class="swatch" style="background:var(--result)"></span><span><b>0→2 · Combined Solar System</b> measured against the CMB</span><small>≈370</small></label>
+        <label class="toggle"><input id="showEarth" type="checkbox" checked /><span class="swatch" style="background:var(--earth)"></span><span><b>2→3 · Earth</b> orbiting around the Sun</span><small>29.8</small></label>
       </section>
       <section class="group">
         <h3>Fourth dimension · orbital phase</h3>
@@ -78,10 +78,10 @@
       </section>
       <section class="group">
         <h3>Live readout</h3>
-        <dl class="readout"><dt>Earth / CMB speed</dt><dd id="earthSpeed">—</dd><dt>Galactic longitude</dt><dd id="earthL">—</dd><dt>Galactic latitude</dt><dd id="earthB">—</dd><dt>Display scale</dt><dd>1 unit = 200 km/s</dd></dl>
+        <dl class="readout"><dt>Earth measured against CMB</dt><dd id="earthSpeed">—</dd><dt>Direction · Galactic longitude</dt><dd id="earthL">—</dd><dt>Direction · Galactic latitude</dt><dd id="earthB">—</dd><dt>Arrow-length scale</dt><dd>1 unit = 200 km/s</dd></dl>
       </section>
       <section class="group">
-        <div class="equation"><b>v<sub>Earth/CMB</sub></b><br />= v<sub>LG/CMB</sub> + v<sub>Sun/LG</sub> + v<sub>Earth/Sun</sub></div>
+        <div class="equation"><b>Final Earth velocity</b><br />Local Group’s cosmic motion <strong>+</strong> Sun’s local motion <strong>+</strong> Earth’s orbital motion</div>
         <p class="warning">This is velocity space, not a literal map of where the objects sit. Position orbits and velocity vectors are different geometries.</p>
       </section>
       <button id="reset" type="button">Reset view</button>
@@ -108,9 +108,10 @@
       function circle3(radius,normal,color,alpha=.55,center=[0,0,0]){const n=norm(normal),seed=Math.abs(n[1])<.9?[0,1,0]:[1,0,0],a=norm(cross(n,seed)),b=norm(cross(n,a));let previous=null;for(let i=0;i<=96;i++){const t=i/96*Math.PI*2,point=add(center,mul(add(mul(a,Math.cos(t)),mul(b,Math.sin(t))),radius));if(previous)line3(previous,point,color,1.2,alpha);previous=point}}
       function drawGrid(){[.8,1.6,2.4,3.2].forEach(r=>circle3(r,[0,1,0],colors.grid,.55));for(let i=0;i<12;i++){const t=i/12*Math.PI*2;line3([0,0,0],[3.3*Math.cos(t),0,3.3*Math.sin(t)],colors.grid,1,.45)}line3([0,-2.25,0],[0,2.25,0],colors.grid,1.2,.8,[5,5]);const n=project([0,2.35,0]);ctx.fillStyle=colors.muted;ctx.font="12px system-ui,sans-serif";ctx.fillText("North Galactic Pole",n.x+8,n.y)}
       function point3(v,r,color){const p=project(v);ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
+      function badge3(v,label,color){const p=project(v);ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,10,0,Math.PI*2);ctx.fillStyle="#131d2c";ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=colors.text;ctx.font="700 11px system-ui,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,p.x,p.y+.5);ctx.restore()}
       function toGalactic(v){const m=mag(v);let l=Math.atan2(v[2],v[0])/DEG;if(l<0)l+=360;return{speed:m/SPEED_SCALE,l,b:Math.asin(v[1]/m)/DEG}}
       function resize(){const dpr=Math.min(window.devicePixelRatio||1,2),rect=canvas.getBoundingClientRect();canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);state.dirty=true}
-      function render(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);drawGrid();const vEarth=earthOrbitalVector(state.phase),vObserver=add(vSunCMB,vEarth),narrow=canvas.clientWidth<600;if(ui.showEarth.checked)circle3(29.8*SPEED_SCALE,eclipticNorth,colors.earth,.6,vSunCMB);if(ui.showLG.checked)arrow3([0,0,0],vLG,colors.cosmic,"Local Group / CMB",narrow?"":"627 km/s · l 276°, b +30°",4,narrow?.88:1,narrow?8:10,-10);if(ui.showSun.checked)arrow3(vLG,vSunCMB,colors.local,"Sun / Local Group",narrow?"":"308 km/s · l 105°, b −7°",4,narrow?.3:.45,narrow?10:-145,narrow?54:30);if(ui.showResult.checked)arrow3([0,0,0],vSunCMB,colors.result,"Solar System / CMB",narrow?"":`${toGalactic(vSunCMB).speed.toFixed(0)} km/s resultant`,5,.52,narrow?22:18,narrow?40:-8);if(ui.showEarth.checked){arrow3(vSunCMB,vObserver,colors.earth,"Earth / Sun",narrow?"":"29.8 km/s · annual phase",3,1,narrow?16:18,narrow?-12:7);line3([0,0,0],vObserver,colors.earth,2,.72,[7,5]);point3(vObserver,5,colors.earth)}point3([0,0,0],5,colors.text);const r=toGalactic(vObserver);ui.earthSpeed.textContent=`${r.speed.toFixed(1)} km/s`;ui.earthL.textContent=`${r.l.toFixed(1)}°`;ui.earthB.textContent=`${r.b>=0?"+":""}${r.b.toFixed(1)}°`;ui.phaseValue.textContent=`${state.phase.toFixed(1)} days`}
+      function render(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);drawGrid();const vEarth=earthOrbitalVector(state.phase),vObserver=add(vSunCMB,vEarth),narrow=canvas.clientWidth<600;if(ui.showEarth.checked)circle3(29.8*SPEED_SCALE,eclipticNorth,colors.earth,.6,vSunCMB);if(ui.showLG.checked)arrow3([0,0,0],vLG,colors.cosmic,"0→1 · Local Group",narrow?"":"motion measured against CMB · 627 km/s",4,narrow?.88:1,narrow?8:10,-10);if(ui.showSun.checked)arrow3(vLG,vSunCMB,colors.local,"1→2 · Sun",narrow?"":"motion measured inside Local Group · 308 km/s",4,narrow?.3:.45,narrow?10:-145,narrow?54:30);if(ui.showResult.checked)arrow3([0,0,0],vSunCMB,colors.result,"0→2 · Combined",narrow?"":`Solar System measured against CMB · ${toGalactic(vSunCMB).speed.toFixed(0)} km/s`,5,.52,narrow?22:18,narrow?40:-8);if(ui.showEarth.checked){arrow3(vSunCMB,vObserver,colors.earth,"2→3 · Earth orbit",narrow?"":"motion measured around Sun · 29.8 km/s",3,1,narrow?16:18,narrow?-12:7);line3([0,0,0],vObserver,colors.earth,2,.72,[7,5])}badge3([0,0,0],"0",colors.text);if(ui.showLG.checked)badge3(vLG,"1",colors.cosmic);if(ui.showSun.checked)badge3(vSunCMB,"2",colors.local);if(ui.showEarth.checked)badge3(vObserver,"3",colors.earth);const r=toGalactic(vObserver);ui.earthSpeed.textContent=`${r.speed.toFixed(1)} km/s`;ui.earthL.textContent=`${r.l.toFixed(1)}°`;ui.earthB.textContent=`${r.b>=0?"+":""}${r.b.toFixed(1)}°`;ui.phaseValue.textContent=`${state.phase.toFixed(1)} days`}
       function frame(time){if(state.playing){const elapsed=state.lastTime?time-state.lastTime:0;state.phase=(state.phase+elapsed*365.25/12000)%365.25;ui.phase.value=state.phase;state.dirty=true}state.lastTime=time;if(state.dirty){render();state.dirty=false}requestAnimationFrame(frame)}
       function resetView(){state.yaw=-.62;state.pitch=.43;state.zoom=1;state.dirty=true}
       canvas.addEventListener("pointerdown",e=>{state.drag={x:e.clientX,y:e.clientY,yaw:state.yaw,pitch:state.pitch};canvas.setPointerCapture(e.pointerId)});

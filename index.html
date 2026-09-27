@@ -1,217 +1,124 @@
 <!doctype html>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="A layered visualization of Earth's, the Sun's, the Milky Way's, and the Local Group's motion through space." />
-<title>How We Move Through the Cosmos</title>
-<style>
-  :root {
-    color-scheme: light dark;
-    --bg: #f7f8fa;
-    --panel: #ffffff;
-    --fg: #172033;
-    --muted: #5b6475;
-    --line: #8a94a6;
-    --faint: #e8ebf0;
-    --orbit: #147d73;
-    --galactic: #315fbd;
-    --local: #7655c5;
-    --cosmic: #b76200;
-    --result: #b3264a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0e1420;
-      --panel: #151e2d;
-      --fg: #edf1f7;
-      --muted: #aab4c5;
-      --line: #778398;
-      --faint: #273245;
-      --orbit: #56c7b8;
-      --galactic: #78a6ff;
-      --local: #b49afa;
-      --cosmic: #ffb357;
-      --result: #ff7091;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--fg);
-    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  main { max-width: 1180px; margin: 32px auto; padding: 0 20px 32px; }
-  svg { width: 100%; height: auto; display: block; }
-  .panel { fill: var(--panel); stroke: var(--faint); stroke-width: 1.5; }
-  .rule { stroke: var(--faint); stroke-width: 1.5; }
-  .axis { stroke: var(--line); stroke-width: 1; stroke-dasharray: 5 5; fill: none; }
-  .orbit-line { stroke: var(--orbit); stroke-width: 3; fill: none; }
-  .galactic-line { stroke: var(--galactic); stroke-width: 3; fill: none; }
-  .local-line { stroke: var(--local); stroke-width: 3; fill: none; }
-  .cosmic-line { stroke: var(--cosmic); stroke-width: 4; fill: none; }
-  .result-line { stroke: var(--result); stroke-width: 4; fill: none; }
-  .title { font-size: 30px; font-weight: 760; fill: var(--fg); letter-spacing: -0.5px; }
-  .subtitle { font-size: 15px; fill: var(--muted); }
-  .section { font-size: 16px; font-weight: 730; fill: var(--fg); }
-  .label { font-size: 14px; font-weight: 700; fill: var(--fg); }
-  .body { font-size: 13px; fill: var(--muted); }
-  .small { font-size: 11px; fill: var(--muted); }
-  .speed { font-size: 15px; font-weight: 760; }
-  .orbit-text { fill: var(--orbit); }
-  .galactic-text { fill: var(--galactic); }
-  .local-text { fill: var(--local); }
-  .cosmic-text { fill: var(--cosmic); }
-  .result-text { fill: var(--result); }
-  .dot { fill: var(--fg); }
-  .open-dot { fill: var(--panel); stroke: var(--fg); stroke-width: 2; }
-  .pill { fill: var(--faint); }
-  .equation { font-size: 16px; font-weight: 730; fill: var(--fg); }
-</style>
-<main>
-<svg viewBox="0 0 1140 900" role="img" aria-labelledby="diagram-title diagram-desc">
-  <title id="diagram-title">How We Move Through the Cosmos</title>
-  <desc id="diagram-desc">A layered diagram showing Earth's orbit around the Sun, the Sun's orbit around the Milky Way, Milky Way motion within the Local Group, Local Group motion relative to the cosmic microwave background, and the resulting Solar System velocity.</desc>
-
-  <defs>
-    <marker id="arrow-orbit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--orbit)" />
-    </marker>
-    <marker id="arrow-galactic" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--galactic)" />
-    </marker>
-    <marker id="arrow-local" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--local)" />
-    </marker>
-    <marker id="arrow-cosmic" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--cosmic)" />
-    </marker>
-    <marker id="arrow-result" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--result)" />
-    </marker>
-  </defs>
-
-  <!-- Panel backgrounds sit behind every connector. -->
-  <rect x="0" y="105" width="545" height="690" rx="18" class="panel" />
-  <rect x="570" y="105" width="570" height="690" rx="18" class="panel" />
-
-  <!-- Connectors are drawn before foreground nodes and labels. -->
-  <path class="orbit-line" marker-end="url(#arrow-orbit)" d="M 91 272 A 42 22 0 1 1 122 281" />
-  <path class="galactic-line" marker-end="url(#arrow-galactic)" d="M 90 415 C 150 359, 242 359, 307 410" />
-  <path class="local-line" marker-end="url(#arrow-local)" d="M 108 553 C 162 520, 229 520, 286 550" />
-  <path class="cosmic-line" marker-end="url(#arrow-cosmic)" d="M 122 703 C 182 653, 251 635, 319 640" />
-
-  <!-- Vector triangle connectors. Lengths are illustrative. -->
-  <path class="axis" d="M 790 437 L 1015 437 M 790 437 L 790 165" />
-  <path class="cosmic-line" marker-end="url(#arrow-cosmic)" d="M 790 437 L 610 199" />
-  <path class="local-line" marker-end="url(#arrow-local)" d="M 610 199 L 695 313" />
-  <path class="result-line" marker-end="url(#arrow-result)" d="M 790 437 L 695 313" />
-
-  <!-- Header -->
-  <text x="0" y="45" class="title">How We Move Through the Cosmos</text>
-  <text x="0" y="73" class="subtitle">Different motions use different reference frames. They combine as 3D vectors—not as speeds on one cosmic speedometer.</text>
-
-  <!-- Left panel: nested scales -->
-  <text x="28" y="140" class="section">Four nested scales</text>
-  <text x="28" y="163" class="body">Each arrow answers “moving relative to what?”</text>
-  <line x1="28" y1="184" x2="517" y2="184" class="rule" />
-
-  <!-- Earth card -->
-  <circle cx="108" cy="259" r="15" fill="var(--cosmic)" />
-  <circle cx="146" cy="265" r="6" fill="var(--galactic)" />
-  <text x="195" y="231" class="label">Earth around the Sun</text>
-  <text x="195" y="257" class="speed orbit-text">≈ 30 km/s</text>
-  <text x="195" y="280" class="body">Direction changes continuously over one year.</text>
-  <text x="195" y="300" class="body">This adds a small annual wobble to the CMB vector.</text>
-  <line x1="28" y1="326" x2="517" y2="326" class="rule" />
-
-  <!-- Galactic orbit card -->
-  <ellipse cx="198" cy="416" rx="112" ry="42" class="axis" />
-  <circle cx="198" cy="416" r="10" class="dot" />
-  <circle cx="92" cy="403" r="7" fill="var(--cosmic)" />
-  <text x="337" y="375" class="label">Sun around the Milky Way</text>
-  <text x="337" y="401" class="speed galactic-text">≈ 240 km/s</text>
-  <text x="337" y="424" class="body">Current sky direction: Galactic</text>
-  <text x="337" y="443" class="body">longitude 90°, toward Cygnus.</text>
-  <text x="198" y="465" text-anchor="middle" class="small">Galactic center</text>
-  <line x1="28" y1="482" x2="517" y2="482" class="rule" />
-
-  <!-- Local Group card -->
-  <ellipse cx="110" cy="552" rx="46" ry="20" class="axis" />
-  <ellipse cx="298" cy="552" rx="55" ry="23" class="axis" />
-  <circle cx="110" cy="552" r="9" fill="var(--galactic)" />
-  <circle cx="298" cy="552" r="11" fill="var(--local)" />
-  <text x="91" y="590" class="small">Milky Way</text>
-  <text x="273" y="590" class="small">Andromeda</text>
-  <text x="353" y="524" class="label">Within the Local Group</text>
-  <text x="353" y="550" class="speed local-text">≈ 110 km/s</text>
-  <text x="353" y="573" class="body">Andromeda’s measured radial</text>
-  <text x="353" y="592" class="body">approach toward the Milky Way.</text>
-  <line x1="28" y1="620" x2="517" y2="620" class="rule" />
-
-  <!-- CMB card -->
-  <circle cx="104" cy="704" r="10" fill="var(--local)" />
-  <path d="M 68 732 Q 106 750 144 732" class="axis" />
-  <text x="194" y="665" class="label">Local Group relative to the CMB</text>
-  <text x="194" y="691" class="speed cosmic-text">≈ 627 km/s</text>
-  <text x="194" y="714" class="body">Toward Galactic coordinates l = 276°, b = +30°</text>
-  <text x="194" y="733" class="body">in the broad direction of Hydra.</text>
-  <text x="194" y="758" class="small">The CMB supplies the practical large-scale rest frame.</text>
-
-  <!-- Right panel: vector composition -->
-  <text x="598" y="140" class="section">Why 627 km/s becomes 370 km/s</text>
-  <text x="598" y="163" class="body">The Sun’s Local Group motion points partly against the Local Group’s cosmic motion.</text>
-  <line x1="598" y1="184" x2="1112" y2="184" class="rule" />
-
-  <circle cx="790" cy="437" r="7" class="open-dot" />
-  <circle cx="610" cy="199" r="6" class="open-dot" />
-  <circle cx="695" cy="313" r="7" fill="var(--result)" />
-
-  <rect x="595" y="218" width="152" height="48" rx="10" class="pill" />
-  <text x="610" y="238" class="small">LOCAL GROUP / CMB</text>
-  <text x="610" y="256" class="label cosmic-text">627 km/s</text>
-
-  <rect x="580" y="278" width="151" height="48" rx="10" class="pill" />
-  <text x="595" y="298" class="small">SUN / LOCAL GROUP</text>
-  <text x="595" y="316" class="label local-text">≈ 306 km/s</text>
-
-  <rect x="809" y="334" width="172" height="48" rx="10" class="pill" />
-  <text x="824" y="354" class="small">SOLAR SYSTEM / CMB</text>
-  <text x="824" y="372" class="label result-text">≈ 370 km/s</text>
-
-  <text x="598" y="488" class="equation">
-    <tspan class="cosmic-text">v</tspan><tspan baseline-shift="sub" font-size="11">LG/CMB</tspan>
-    <tspan> + </tspan>
-    <tspan class="local-text">v</tspan><tspan baseline-shift="sub" font-size="11">Sun/LG</tspan>
-    <tspan> = </tspan>
-    <tspan class="result-text">v</tspan><tspan baseline-shift="sub" font-size="11">Sun/CMB</tspan>
-  </text>
-  <text x="598" y="520" class="body">The resultant points toward l ≈ 264°, b ≈ +48°—in the direction of Leo.</text>
-  <text x="598" y="542" class="body">Arrow geometry is schematic; the numerical directions are three-dimensional.</text>
-
-  <!-- Reference-frame ladder -->
-  <line x1="598" y1="574" x2="1112" y2="574" class="rule" />
-  <text x="598" y="605" class="section">Reference-frame ladder</text>
-  <rect x="598" y="628" width="108" height="54" rx="10" class="pill" />
-  <rect x="730" y="628" width="108" height="54" rx="10" class="pill" />
-  <rect x="862" y="628" width="108" height="54" rx="10" class="pill" />
-  <rect x="994" y="628" width="118" height="54" rx="10" class="pill" />
-  <path d="M 706 655 L 726 655" class="orbit-line" marker-end="url(#arrow-orbit)" />
-  <path d="M 838 655 L 858 655" class="galactic-line" marker-end="url(#arrow-galactic)" />
-  <path d="M 970 655 L 990 655" class="cosmic-line" marker-end="url(#arrow-cosmic)" />
-  <text x="652" y="650" text-anchor="middle" class="label">Earth</text>
-  <text x="652" y="668" text-anchor="middle" class="small">Sun frame</text>
-  <text x="784" y="650" text-anchor="middle" class="label">Sun</text>
-  <text x="784" y="668" text-anchor="middle" class="small">Galactic frame</text>
-  <text x="916" y="650" text-anchor="middle" class="label">Milky Way</text>
-  <text x="916" y="668" text-anchor="middle" class="small">Local Group</text>
-  <text x="1053" y="650" text-anchor="middle" class="label">Local Group</text>
-  <text x="1053" y="668" text-anchor="middle" class="small">CMB frame</text>
-
-  <text x="598" y="723" class="body">There is no absolute stationary background in physics. “Which way?” only becomes</text>
-  <text x="598" y="743" class="body">well-defined after choosing the object and the frame it is measured against.</text>
-
-  <!-- Footer -->
-  <text x="0" y="839" class="small">Speeds are rounded. Directions use Galactic longitude (l) and latitude (b). Diagram arrows are not to common scale.</text>
-  <text x="0" y="863" class="small">Sources: NASA LAMBDA/Planck CMB dipole; ESA Gaia; NASA/IPAC Extragalactic Database; van der Marel et al. (2012).</text>
-</svg>
-</main>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Explore the motion of Earth, the Sun, and the Local Group as interactive 3D velocity vectors over time." />
+  <title>Cosmic Motion Lab — 3D + Time</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b111c; --panel:#131d2c; --panel-2:#182438; --fg:#edf2f8; --muted:#a8b3c5; --line:#34445d; --local:#b59bff; --cosmic:#ffb357; --result:#ff7192; --earth:#79d2ff; }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button, input { font:inherit; } a { color:var(--earth); }
+    header { max-width:1460px; margin:0 auto; padding:22px 24px 14px; display:flex; align-items:end; justify-content:space-between; gap:24px; }
+    h1 { margin:0; font-size:clamp(25px,3vw,38px); letter-spacing:-.04em; }
+    header p { margin:5px 0 0; color:var(--muted); }
+    .header-link { white-space:nowrap; }
+    main { max-width:1460px; margin:0 auto; padding:0 24px 28px; display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; }
+    .stage, aside { border:1px solid var(--line); border-radius:18px; background:var(--panel); overflow:hidden; }
+    .stage { position:relative; min-height:680px; }
+    canvas { display:block; width:100%; height:100%; min-height:680px; cursor:grab; touch-action:none; }
+    canvas:active { cursor:grabbing; }
+    .stage-note { position:absolute; left:18px; top:16px; max-width:340px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:rgba(19,29,44,.9); pointer-events:none; }
+    .stage-note strong { display:block; margin-bottom:2px; }
+    .stage-note span { color:var(--muted); font-size:12px; }
+    .gesture { position:absolute; left:18px; bottom:16px; color:var(--muted); font-size:12px; pointer-events:none; }
+    aside { padding:20px; }
+    aside h2 { margin:0 0 5px; font-size:17px; }
+    aside h3 { margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .intro { color:var(--muted); margin:0 0 19px; }
+    .group { padding:17px 0; border-top:1px solid var(--line); }
+    .toggle { display:grid; grid-template-columns:20px 12px 1fr auto; align-items:center; gap:8px; margin:11px 0; cursor:pointer; }
+    .toggle input { accent-color:var(--earth); }
+    .swatch { width:10px; height:10px; border-radius:50%; }
+    .toggle small { color:var(--muted); }
+    .time-row { display:flex; gap:8px; align-items:center; }
+    input[type="range"] { width:100%; accent-color:var(--earth); }
+    .phase { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:5px; }
+    button { border:1px solid var(--line); border-radius:9px; background:var(--panel-2); color:var(--fg); padding:8px 11px; cursor:pointer; }
+    button:hover { border-color:var(--earth); }
+    .readout { display:grid; grid-template-columns:1fr auto; gap:7px 12px; margin:0; }
+    .readout dt { color:var(--muted); }
+    .readout dd { margin:0; font-variant-numeric:tabular-nums; font-weight:680; }
+    .equation { padding:12px; border-radius:10px; background:var(--panel-2); color:var(--muted); font-size:12px; }
+    .equation b { font-size:14px; color:var(--fg); }
+    .warning { color:var(--muted); font-size:12px; margin:12px 0 0; }
+    footer { max-width:1460px; margin:0 auto; padding:0 24px 30px; color:var(--muted); font-size:12px; }
+    @media (max-width:900px) { header { align-items:start; flex-direction:column; gap:8px; } main { grid-template-columns:1fr; } .stage,canvas { min-height:540px; } }
+    @media (max-width:540px) { header,main,footer { padding-left:14px; padding-right:14px; } .stage,canvas { min-height:470px; } .stage-note { right:14px; max-width:none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>Cosmic Motion Lab</h1><p>A 3D velocity-space model with time as the fourth dimension.</p></div>
+    <a class="header-link" href="explainer.html">Open the 2D explainer →</a>
+  </header>
+  <main>
+    <section class="stage" aria-label="Interactive three-dimensional velocity vector visualization">
+      <canvas id="scene">Your browser needs Canvas support to display the interactive model.</canvas>
+      <div class="stage-note"><strong>Velocity space · Galactic coordinates</strong><span>The Galactic plane is the circular grid. Arrow lengths share one scale.</span></div>
+      <div class="gesture">Drag to rotate · Scroll to zoom · Double-click to reset</div>
+    </section>
+    <aside>
+      <h2>Reference-frame controls</h2>
+      <p class="intro">Toggle the components. Their head-to-tail sum produces the observer’s motion relative to the CMB.</p>
+      <section class="group">
+        <h3>Layers · speed in km/s</h3>
+        <label class="toggle"><input id="showLG" type="checkbox" checked /><span class="swatch" style="background:var(--cosmic)"></span><span>Local Group / CMB</span><small>627</small></label>
+        <label class="toggle"><input id="showSun" type="checkbox" checked /><span class="swatch" style="background:var(--local)"></span><span>Sun / Local Group</span><small>308</small></label>
+        <label class="toggle"><input id="showResult" type="checkbox" checked /><span class="swatch" style="background:var(--result)"></span><span>Solar System / CMB</span><small>≈370</small></label>
+        <label class="toggle"><input id="showEarth" type="checkbox" checked /><span class="swatch" style="background:var(--earth)"></span><span>Earth orbital velocity</span><small>29.8</small></label>
+      </section>
+      <section class="group">
+        <h3>Fourth dimension · orbital phase</h3>
+        <div class="time-row"><button id="play" type="button" aria-pressed="false">Play</button><input id="phase" type="range" min="0" max="365.25" value="0" step="0.25" aria-label="Earth orbital phase in days" /></div>
+        <div class="phase"><span>Day 0</span><strong id="phaseValue">0.0 days</strong><span>365</span></div>
+        <p class="warning">The annual vector uses the ecliptic plane and correct speed. Phase zero is illustrative, not a calendar ephemeris.</p>
+      </section>
+      <section class="group">
+        <h3>Live readout</h3>
+        <dl class="readout"><dt>Earth / CMB speed</dt><dd id="earthSpeed">—</dd><dt>Galactic longitude</dt><dd id="earthL">—</dd><dt>Galactic latitude</dt><dd id="earthB">—</dd><dt>Display scale</dt><dd>1 unit = 200 km/s</dd></dl>
+      </section>
+      <section class="group">
+        <div class="equation"><b>v<sub>Earth/CMB</sub></b><br />= v<sub>LG/CMB</sub> + v<sub>Sun/LG</sub> + v<sub>Earth/Sun</sub></div>
+        <p class="warning">This is velocity space, not a literal map of where the objects sit. Position orbits and velocity vectors are different geometries.</p>
+      </section>
+      <button id="reset" type="button">Reset view</button>
+    </aside>
+  </main>
+  <footer>Speeds are rounded educational values. Coordinate directions and sources are documented in the repository README. CC BY 4.0.</footer>
+  <script>
+    (() => {
+      "use strict";
+      const canvas=document.getElementById("scene"),ctx=canvas.getContext("2d");
+      const ui={showLG:document.getElementById("showLG"),showSun:document.getElementById("showSun"),showResult:document.getElementById("showResult"),showEarth:document.getElementById("showEarth"),phase:document.getElementById("phase"),phaseValue:document.getElementById("phaseValue"),play:document.getElementById("play"),reset:document.getElementById("reset"),earthSpeed:document.getElementById("earthSpeed"),earthL:document.getElementById("earthL"),earthB:document.getElementById("earthB")};
+      const colors={grid:"#34445d",muted:"#8290a5",text:"#edf2f8",cosmic:"#ffb357",local:"#b59bff",result:"#ff7192",earth:"#79d2ff"};
+      const DEG=Math.PI/180,SPEED_SCALE=1/200;
+      const state={yaw:-.62,pitch:.43,zoom:1,phase:0,playing:false,drag:null,lastTime:0,dirty:true};
+      const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],mag=a=>Math.hypot(a[0],a[1],a[2]),norm=a=>mul(a,1/mag(a));
+      function galacticVector(speed,l,b){const lr=l*DEG,br=b*DEG;return mul([Math.cos(br)*Math.cos(lr),Math.sin(br),Math.cos(br)*Math.sin(lr)],speed*SPEED_SCALE)}
+      const vLG=galacticVector(627,276,30),vSunLG=galacticVector(308,105,-7),vSunCMB=add(vLG,vSunLG);
+      const eclipticNorth=norm(galacticVector(1,96.38,29.81)),planeA=norm(cross(eclipticNorth,[0,1,0])),planeB=norm(cross(eclipticNorth,planeA));
+      function earthOrbitalVector(days){const t=days/365.25*Math.PI*2;return mul(add(mul(planeA,Math.cos(t)),mul(planeB,Math.sin(t))),29.8*SPEED_SCALE)}
+      function rotate(v){const cy=Math.cos(state.yaw),sy=Math.sin(state.yaw),cp=Math.cos(state.pitch),sp=Math.sin(state.pitch),x=v[0]*cy-v[2]*sy,z=v[0]*sy+v[2]*cy;return[x,v[1]*cp-z*sp,v[1]*sp+z*cp]}
+      function project(v){const r=rotate(v),distance=7.5,p=distance/Math.max(2.5,distance-r[2]),scale=Math.min(canvas.clientWidth,canvas.clientHeight)*.19*state.zoom;return{x:canvas.clientWidth*.5+r[0]*scale*p,y:canvas.clientHeight*.55-r[1]*scale*p,z:r[2]}}
+      function line3(a,b,color,width=1,alpha=1,dash=[]){const p=project(a),q=project(b);ctx.save();ctx.strokeStyle=color;ctx.globalAlpha=alpha;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.restore()}
+      function arrow3(a,b,color,label,detail,width=4,labelT=1,dx=0,dy=0){const p=project(a),q=project(b),angle=Math.atan2(q.y-p.y,q.x-p.x),head=13;ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=width;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-head*Math.cos(angle-.48),q.y-head*Math.sin(angle-.48));ctx.lineTo(q.x-head*Math.cos(angle+.48),q.y-head*Math.sin(angle+.48));ctx.closePath();ctx.fill();const lx=p.x+(q.x-p.x)*labelT+dx,ly=p.y+(q.y-p.y)*labelT+dy;ctx.font="700 13px system-ui,sans-serif";ctx.fillText(label,lx,ly);if(detail){ctx.fillStyle=colors.muted;ctx.font="12px system-ui,sans-serif";ctx.fillText(detail,lx,ly+17)}ctx.restore()}
+      function circle3(radius,normal,color,alpha=.55,center=[0,0,0]){const n=norm(normal),seed=Math.abs(n[1])<.9?[0,1,0]:[1,0,0],a=norm(cross(n,seed)),b=norm(cross(n,a));let previous=null;for(let i=0;i<=96;i++){const t=i/96*Math.PI*2,point=add(center,mul(add(mul(a,Math.cos(t)),mul(b,Math.sin(t))),radius));if(previous)line3(previous,point,color,1.2,alpha);previous=point}}
+      function drawGrid(){[.8,1.6,2.4,3.2].forEach(r=>circle3(r,[0,1,0],colors.grid,.55));for(let i=0;i<12;i++){const t=i/12*Math.PI*2;line3([0,0,0],[3.3*Math.cos(t),0,3.3*Math.sin(t)],colors.grid,1,.45)}line3([0,-2.25,0],[0,2.25,0],colors.grid,1.2,.8,[5,5]);const n=project([0,2.35,0]);ctx.fillStyle=colors.muted;ctx.font="12px system-ui,sans-serif";ctx.fillText("North Galactic Pole",n.x+8,n.y)}
+      function point3(v,r,color){const p=project(v);ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
+      function toGalactic(v){const m=mag(v);let l=Math.atan2(v[2],v[0])/DEG;if(l<0)l+=360;return{speed:m/SPEED_SCALE,l,b:Math.asin(v[1]/m)/DEG}}
+      function resize(){const dpr=Math.min(window.devicePixelRatio||1,2),rect=canvas.getBoundingClientRect();canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);state.dirty=true}
+      function render(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);drawGrid();const vEarth=earthOrbitalVector(state.phase),vObserver=add(vSunCMB,vEarth),narrow=canvas.clientWidth<600;if(ui.showEarth.checked)circle3(29.8*SPEED_SCALE,eclipticNorth,colors.earth,.6,vSunCMB);if(ui.showLG.checked)arrow3([0,0,0],vLG,colors.cosmic,"Local Group / CMB",narrow?"":"627 km/s · l 276°, b +30°",4,narrow?.88:1,narrow?8:10,-10);if(ui.showSun.checked)arrow3(vLG,vSunCMB,colors.local,"Sun / Local Group",narrow?"":"308 km/s · l 105°, b −7°",4,narrow?.3:.45,narrow?10:-145,narrow?54:30);if(ui.showResult.checked)arrow3([0,0,0],vSunCMB,colors.result,"Solar System / CMB",narrow?"":`${toGalactic(vSunCMB).speed.toFixed(0)} km/s resultant`,5,.52,narrow?22:18,narrow?40:-8);if(ui.showEarth.checked){arrow3(vSunCMB,vObserver,colors.earth,"Earth / Sun",narrow?"":"29.8 km/s · annual phase",3,1,narrow?16:18,narrow?-12:7);line3([0,0,0],vObserver,colors.earth,2,.72,[7,5]);point3(vObserver,5,colors.earth)}point3([0,0,0],5,colors.text);const r=toGalactic(vObserver);ui.earthSpeed.textContent=`${r.speed.toFixed(1)} km/s`;ui.earthL.textContent=`${r.l.toFixed(1)}°`;ui.earthB.textContent=`${r.b>=0?"+":""}${r.b.toFixed(1)}°`;ui.phaseValue.textContent=`${state.phase.toFixed(1)} days`}
+      function frame(time){if(state.playing){const elapsed=state.lastTime?time-state.lastTime:0;state.phase=(state.phase+elapsed*365.25/12000)%365.25;ui.phase.value=state.phase;state.dirty=true}state.lastTime=time;if(state.dirty){render();state.dirty=false}requestAnimationFrame(frame)}
+      function resetView(){state.yaw=-.62;state.pitch=.43;state.zoom=1;state.dirty=true}
+      canvas.addEventListener("pointerdown",e=>{state.drag={x:e.clientX,y:e.clientY,yaw:state.yaw,pitch:state.pitch};canvas.setPointerCapture(e.pointerId)});
+      canvas.addEventListener("pointermove",e=>{if(!state.drag)return;state.yaw=state.drag.yaw+(e.clientX-state.drag.x)*.008;state.pitch=Math.max(-1.35,Math.min(1.35,state.drag.pitch+(e.clientY-state.drag.y)*.008));state.dirty=true});
+      canvas.addEventListener("pointerup",()=>state.drag=null);canvas.addEventListener("pointercancel",()=>state.drag=null);
+      canvas.addEventListener("wheel",e=>{e.preventDefault();state.zoom=Math.max(.62,Math.min(2.1,state.zoom*Math.exp(-e.deltaY*.001)));state.dirty=true},{passive:false});
+      canvas.addEventListener("dblclick",resetView);ui.reset.addEventListener("click",resetView);ui.phase.addEventListener("input",()=>{state.phase=Number(ui.phase.value);state.dirty=true});ui.play.addEventListener("click",()=>{state.playing=!state.playing;ui.play.textContent=state.playing?"Pause":"Play";ui.play.setAttribute("aria-pressed",String(state.playing));state.lastTime=0;state.dirty=true});[ui.showLG,ui.showSun,ui.showResult,ui.showEarth].forEach(c=>c.addEventListener("change",()=>state.dirty=true));new ResizeObserver(resize).observe(canvas);window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

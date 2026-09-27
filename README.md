@@ -9,13 +9,15 @@ The diagram separates four reference frames:
 - the Milky Way and Andromeda within the Local Group
 - the Local Group relative to the cosmic microwave background (CMB)
 
-It also shows why the Local Group’s roughly **627 km/s** CMB velocity and the Sun’s roughly **306 km/s** motion relative to the Local Group produce a Solar System CMB velocity of only about **370 km/s**: the vectors partially oppose one another.
+It also shows why the Local Group’s roughly **627 km/s** CMB velocity and the Sun’s roughly **308 km/s** motion relative to the Local Group produce a Solar System CMB velocity of only about **370 km/s**: the vectors partially oppose one another.
 
 ![Preview of the cosmic motion vector visualization](preview.png)
 
 ## View it
 
-Open [`index.html`](index.html) in a browser. It contains no scripts, external assets, web fonts, or tracking and adapts to light and dark mode.
+Open [`index.html`](index.html) in a browser for the interactive 3D + time model. Drag to rotate, scroll to zoom, toggle individual vectors, or play one year of Earth’s orbital velocity.
+
+The original responsive SVG overview remains available as [`explainer.html`](explainer.html). Both pages contain no external assets, web fonts, or tracking.
 
 ## Scientific notes
 

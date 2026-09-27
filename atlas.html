@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Explore real planets, nearby stars, galaxies, and tidal associations across four astronomical scales." />
+  <title>Cosmic Atlas — Real Objects in 3D</title>
+  <style>
+    :root { color-scheme:dark; --bg:#0b111c; --panel:#131d2c; --panel2:#182438; --fg:#edf2f8; --muted:#a8b3c5; --line:#34445d; --planet:#70c8ff; --star:#ffe7a3; --galaxy:#bd9cff; --group:#ffad66; --selected:#61e6c4; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg); font:14px/1.45 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button,input { font:inherit; } a { color:#79d2ff; }
+    header { max-width:1500px; margin:auto; padding:22px 24px 14px; display:flex; align-items:end; justify-content:space-between; gap:18px; }
+    h1 { margin:0; font-size:clamp(26px,3vw,38px); letter-spacing:-.04em; }
+    header p { margin:5px 0 0; color:var(--muted); }
+    nav { display:flex; gap:16px; white-space:nowrap; }
+    main { max-width:1500px; margin:auto; padding:0 24px 26px; display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:16px; }
+    .stage,aside { border:1px solid var(--line); border-radius:18px; background:var(--panel); overflow:hidden; }
+    .stage { position:relative; min-height:720px; }
+    canvas { display:block; width:100%; height:100%; min-height:720px; cursor:grab; touch-action:none; }
+    canvas:active { cursor:grabbing; }
+    .overlay { position:absolute; left:16px; top:16px; max-width:350px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:rgba(19,29,44,.92); pointer-events:none; }
+    .overlay strong { display:block; } .overlay span { color:var(--muted); font-size:12px; }
+    .legend { position:absolute; left:16px; bottom:16px; display:flex; gap:13px; flex-wrap:wrap; color:var(--muted); font-size:12px; pointer-events:none; }
+    .legend i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+    .tooltip { position:absolute; display:none; min-width:150px; max-width:260px; padding:9px 11px; border:1px solid var(--line); border-radius:9px; background:var(--panel2); pointer-events:none; z-index:3; }
+    .tooltip strong { display:block; } .tooltip span { color:var(--muted); font-size:12px; }
+    aside { padding:20px; }
+    aside h2 { margin:0 0 5px; font-size:18px; }
+    aside h3 { margin:0 0 11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-size:12px; }
+    .intro,.note { color:var(--muted); }
+    .group { border-top:1px solid var(--line); padding:17px 0; }
+    .modes { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    button { border:1px solid var(--line); border-radius:9px; background:var(--panel2); color:var(--fg); padding:9px 10px; cursor:pointer; }
+    button:hover,button.active { border-color:var(--selected); }
+    button.active { color:var(--selected); background:#173035; }
+    .search { display:flex; gap:7px; }
+    .search input { min-width:0; width:100%; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--fg); padding:9px 10px; }
+    .check { display:flex; align-items:center; gap:8px; margin:10px 0; } .check input { accent-color:var(--selected); }
+    .facts { display:grid; grid-template-columns:1fr auto; gap:7px 12px; margin:0; }
+    .facts dt { color:var(--muted); } .facts dd { margin:0; text-align:right; font-weight:650; font-variant-numeric:tabular-nums; }
+    .selected { min-height:116px; padding:12px; border-radius:10px; background:var(--panel2); }
+    .selected h3 { margin:0 0 8px; color:var(--fg); text-transform:none; letter-spacing:0; font-size:16px; }
+    .selected p { margin:4px 0; color:var(--muted); font-size:12px; }
+    .source { font-size:11px; color:var(--muted); }
+    footer { max-width:1500px; margin:auto; padding:0 24px 30px; color:var(--muted); font-size:12px; }
+    @media(max-width:920px){header{align-items:start;flex-direction:column}main{grid-template-columns:1fr}.stage,canvas{min-height:560px}}
+    @media(max-width:520px){header,main,footer{padding-left:14px;padding-right:14px}nav{white-space:normal;flex-wrap:wrap}.stage,canvas{min-height:500px}.overlay{right:14px;max-width:none}.legend{right:14px}.modes{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>Cosmic Atlas</h1><p>Real catalog positions across four scales. Marker sizes are enlarged; distances are not.</p></div>
+    <nav><a href="index.html">Velocity Lab</a><a href="explainer.html">2D explainer</a></nav>
+  </header>
+  <main>
+    <section class="stage" aria-label="Interactive three-dimensional cosmic atlas">
+      <canvas id="scene">Your browser needs Canvas support.</canvas>
+      <div class="overlay"><strong id="modeTitle">Solar System · 50 AU radius</strong><span id="modeNote">Heliocentric positions at the fixed catalog epoch.</span></div>
+      <div class="legend"><span><i style="background:var(--planet)"></i>planet</span><span><i style="background:var(--star)"></i>star</span><span><i style="background:var(--galaxy)"></i>galaxy</span><span><i style="background:var(--group)"></i>tidal association</span></div>
+      <div id="tooltip" class="tooltip"></div>
+    </section>
+    <aside>
+      <h2>Choose a physical scale</h2>
+      <p class="intro">Each mode uses its own linear distance scale. This avoids compressing twenty orders of magnitude into decorative mush.</p>
+      <section class="group">
+        <h3>Scale</h3>
+        <div class="modes">
+          <button class="mode active" data-mode="solar">Solar System</button>
+          <button class="mode" data-mode="stars">Nearby Stars</button>
+          <button class="mode" data-mode="localGroup">Local Group</button>
+          <button class="mode" data-mode="localVolume">Local Volume</button>
+        </div>
+      </section>
+      <section class="group">
+        <h3>Find a visible object</h3>
+        <div class="search"><input id="search" type="search" placeholder="Earth, GJ 15, M31…" aria-label="Object name" /><button id="find" type="button">Find</button></div>
+        <label class="check"><input id="labels" type="checkbox" checked />Show automatic labels</label>
+        <label class="check"><input id="groups" type="checkbox" checked />Show catalog-derived associations</label>
+      </section>
+      <section class="group">
+        <h3>Current view</h3>
+        <dl class="facts"><dt>Objects plotted</dt><dd id="count">—</dd><dt>Linear radius</dt><dd id="radius">—</dd><dt>Coordinate plane</dt><dd id="plane">—</dd><dt>Data epoch</dt><dd id="epoch">—</dd></dl>
+      </section>
+      <section class="group">
+        <h3>Selected object</h3>
+        <div id="selected" class="selected"><h3>Nothing selected</h3><p>Hover for a quick label; click a point for catalog details.</p></div>
+      </section>
+      <section class="group source"><strong>Accuracy boundary</strong><br />Positions and distances come from the cited catalogs. Point sizes and association symbols are intentionally exaggerated. Tidal associations are derived from positive Θ₁ membership and are not measured physical boundaries.</section>
+      <button id="reset" type="button">Reset view</button>
+    </aside>
+  </main>
+  <footer>Drag to rotate · Scroll to zoom · Click to inspect · Sources: <a href="https://ssd.jpl.nasa.gov/horizons/">NASA/JPL Horizons</a>, <a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/J/A%2BA/670/A19">CNS5</a>, and the <a href="https://heasarc.gsfc.nasa.gov/W3Browse/all/neargalcat.html">Updated Nearby Galaxy Catalog</a>. Visualization CC BY 4.0.</footer>
+  <script src="data/atlas-data.js"></script>
+  <script>
+    (()=>{
+      "use strict";
+      const data=window.ATLAS_DATA,canvas=document.getElementById("scene"),ctx=canvas.getContext("2d"),tooltip=document.getElementById("tooltip");
+      const ui={modeTitle:document.getElementById("modeTitle"),modeNote:document.getElementById("modeNote"),count:document.getElementById("count"),radius:document.getElementById("radius"),plane:document.getElementById("plane"),epoch:document.getElementById("epoch"),selected:document.getElementById("selected"),search:document.getElementById("search"),find:document.getElementById("find"),labels:document.getElementById("labels"),groups:document.getElementById("groups"),reset:document.getElementById("reset")};
+      const C={grid:"#34445d",muted:"#8b99ad",text:"#edf2f8",planet:"#70c8ff",star:"#ffe7a3",galaxy:"#bd9cff",group:"#ffad66",selected:"#61e6c4"},D=Math.PI/180;
+      const configs={
+        solar:{title:"Solar System",radius:50,unit:"AU",plane:"Ecliptic J2000",note:"NASA/JPL DE441 heliocentric positions at the fixed epoch."},
+        stars:{title:"Nearby Stars",radius:25,unit:"pc",plane:"Equatorial J2000",note:"CNS5 systems within 25 parsecs; Sun at the origin."},
+        localGroup:{title:"Local Group",radius:1.5,unit:"Mpc",plane:"Equatorial J2000",note:"Nearby galaxies within 1.5 Mpc; Milky Way at the origin."},
+        localVolume:{title:"Local Volume",radius:11,unit:"Mpc",plane:"Equatorial J2000",note:"Cataloged galaxies and derived tidal associations within 11 Mpc."}
+      };
+      const state={mode:"solar",yaw:-.55,pitch:.35,zoom:1,drag:null,moved:false,hover:null,selected:null,objects:[],screen:[],dirty:true};
+      const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mag=v=>Math.hypot(v[0],v[1],v[2]);
+      function xyz(ra,dec,d){const a=ra*D,b=dec*D;return[d*Math.cos(b)*Math.cos(a),d*Math.sin(b),d*Math.cos(b)*Math.sin(a)]}
+      function starColor(bp){if(bp===null)return C.star;if(bp<0)return"#a9c9ff";if(bp<.6)return"#d7e5ff";if(bp<1.1)return"#fff2ce";if(bp<1.7)return"#ffd39c";return"#ff9f72"}
+      function prettyName(name){const raw=name.trim();return raw.replace(/^MESSIER0*(\d+)$/i,"M$1").replace(/^(NGC|IC|UGC|PGC)0*(\d+)$/i,(_,prefix,n)=>`${prefix.toUpperCase()} ${n}`)}
+      function objectsFor(mode){
+        if(mode==="solar")return data.planets.map(p=>({name:p[0],v:[p[1],p[3],p[2]],distance:Math.hypot(p[1],p[2],p[3]),type:"planet",radius:p[4],color:p[5],size:clamp(2+Math.log10(p[4])*1.15,4,10)}));
+        if(mode==="stars")return[{name:"Sun",v:[0,0,0],distance:0,type:"star",mag:-26.7,color:"#ffd166",size:8},...data.stars.map(s=>({name:s[0],v:xyz(s[1],s[2],s[3]),distance:s[3],type:"star",mag:s[4],bp:s[5],parallax:s[6],parallaxError:s[7],color:starColor(s[5]),size:clamp(4.8-(s[4]??14)*.18,1.1,5)}))];
+        const max=mode==="localGroup"?1.5:11;
+        const galaxies=[{name:"Milky Way",v:[0,0,0],distance:0,type:"galaxy",absMag:-20.8,size:9,color:"#d9c7ff",method:"observer origin"},...data.galaxies.filter(g=>g[3]<=max).map(g=>({name:prettyName(g[0]),rawName:g[0],v:xyz(g[1],g[2],g[3]),distance:g[3],type:"galaxy",method:g[4],absMag:g[5],diameter:g[6],tidal:g[7],disturber:prettyName(g[8]||""),color:C.galaxy,size:clamp(2.4+(-13-(g[5]??-10))*.28,2,8)}))];
+        if(mode==="localVolume"&&ui.groups.checked)galaxies.push(...data.groups.map(g=>({name:`${prettyName(g[0].replace(/ tidal association$/,""))} tidal association`,rawName:g[0],v:xyz(g[1],g[2],g[3]),distance:g[3],type:"group",members:g[4],memberNames:g[5],color:C.group,size:7})));
+        return galaxies;
+      }
+      function rotate(v){const cy=Math.cos(state.yaw),sy=Math.sin(state.yaw),cp=Math.cos(state.pitch),sp=Math.sin(state.pitch),x=v[0]*cy-v[2]*sy,z=v[0]*sy+v[2]*cy;return[x,v[1]*cp-z*sp,v[1]*sp+z*cp]}
+      function project(v){const r=rotate(v),scale=Math.min(canvas.clientWidth,canvas.clientHeight)*.42/configs[state.mode].radius*state.zoom;return{x:canvas.clientWidth*.5+r[0]*scale,y:canvas.clientHeight*.54-r[1]*scale,z:r[2],scale}}
+      function line3(a,b,color,width=1,alpha=1,dash=[]){const p=project(a),q=project(b);ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.globalAlpha=alpha;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.restore()}
+      function ring3(radius){let prev=null;for(let i=0;i<=96;i++){const t=i/96*Math.PI*2,p=[radius*Math.cos(t),0,radius*Math.sin(t)];if(prev)line3(prev,p,C.grid,1,.7);prev=p}}
+      function drawGrid(){const cfg=configs[state.mode];[.25,.5,.75,1].forEach(f=>ring3(cfg.radius*f));for(let i=0;i<12;i++){const t=i/12*Math.PI*2;line3([0,0,0],[cfg.radius*Math.cos(t),0,cfg.radius*Math.sin(t)],C.grid,1,.38)}line3([0,-cfg.radius,0],[0,cfg.radius,0],C.grid,1,.7,[5,5]);const edge=project([cfg.radius,0,0]);ctx.fillStyle=C.muted;ctx.font="12px system-ui";ctx.fillText(`${cfg.radius} ${cfg.unit}`,edge.x-62,edge.y-8)}
+      function drawObject(o,p){ctx.save();ctx.globalAlpha=clamp(.52+(p.z/configs[state.mode].radius)*.18,.28,1);ctx.fillStyle=o.color;if(o.type==="group"){ctx.translate(p.x,p.y);ctx.rotate(Math.PI/4);ctx.fillRect(-o.size/2,-o.size/2,o.size,o.size)}else{ctx.beginPath();ctx.arc(p.x,p.y,o.size,0,Math.PI*2);ctx.fill()}ctx.restore()}
+      function labelCandidates(){return state.screen.filter(({o})=>{if(o===state.selected||o===state.hover)return true;if(!ui.labels.checked)return false;if(state.mode==="solar")return true;if(state.mode==="stars")return o.name==="Sun"||o.distance<2||(o.mag!==null&&o.mag<3);if(state.mode==="localGroup")return o.name==="Milky Way"||(o.absMag!==null&&o.absMag<-13);return o.type==="group"||(o.absMag!==null&&o.absMag<-19)}).sort((a,b)=>b.p.z-a.p.z)}
+      function drawLabels(){const boxes=[];for(const {o,p} of labelCandidates()){ctx.font="600 12px system-ui";const w=ctx.measureText(o.name).width,h=15,x=p.x+o.size+5,y=p.y-5,box=[x-2,y-h+2,w+5,h+3];if(o!==state.selected&&o!==state.hover&&boxes.some(b=>!(box[0]+box[2]<b[0]||b[0]+b[2]<box[0]||box[1]+box[3]<b[1]||b[1]+b[3]<box[1])))continue;boxes.push(box);ctx.fillStyle=o===state.selected?C.selected:o.color;ctx.fillText(o.name,x,y)}}
+      function render(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);drawGrid();const plotted=state.objects.map(o=>({o,p:project(o.v)})).sort((a,b)=>a.p.z-b.p.z);state.screen=plotted;for(const item of plotted)drawObject(item.o,item.p);if(state.selected){const p=project(state.selected.v);ctx.beginPath();ctx.arc(p.x,p.y,state.selected.size+6,0,Math.PI*2);ctx.strokeStyle=C.selected;ctx.lineWidth=2;ctx.stroke()}drawLabels();state.dirty=false}
+      function formatDistance(o){if(state.mode==="solar")return`${o.distance.toFixed(o.distance<1?3:2)} AU`;if(state.mode==="stars")return`${o.distance.toFixed(2)} pc · ${(o.distance*3.26156).toFixed(1)} ly`;return`${o.distance.toFixed(2)} Mpc · ${(o.distance*3.26156).toFixed(1)} million ly`}
+      function details(o){if(!o)return"<h3>Nothing selected</h3><p>Hover for a quick label; click a point for catalog details.</p>";let rows=`<h3>${o.name}</h3><p><strong>${o.type}</strong> · ${formatDistance(o)}</p>`;if(o.type==="planet")rows+=`<p>Physical radius: ${o.radius.toLocaleString()} km<br>Position epoch: ${data.epoch}</p>`;if(o.type==="star")rows+=`<p>Gaia G magnitude: ${o.mag??"unavailable"}<br>BP−RP color: ${o.bp?.toFixed(2)??"unavailable"}<br>Parallax uncertainty: ${o.parallaxError!==null?(100*o.parallaxError/o.parallax).toFixed(2)+"%":"unavailable"}</p>`;if(o.type==="galaxy")rows+=`<p>Absolute B magnitude: ${o.absMag??"unavailable"}<br>Diameter: ${o.diameter??"unavailable"} kpc<br>Distance method: ${o.method||"unspecified"}<br>Main disturber: ${o.disturber||"none cataloged"}</p>`;if(o.type==="group")rows+=`<p>${o.members} galaxies with positive Θ₁ linked to this main disturber.<br>Derived association marker—not a measured boundary.</p>`;return rows}
+      function nearest(x,y){let best=null,d=15;for(const item of state.screen){const q=Math.hypot(item.p.x-x,item.p.y-y);if(q<d){d=q;best=item.o}}return best}
+      function updateTooltip(e){if(!state.hover){tooltip.style.display="none";return}tooltip.innerHTML=`<strong>${state.hover.name}</strong><span>${state.hover.type} · ${formatDistance(state.hover)}</span>`;tooltip.style.display="block";const rect=canvas.getBoundingClientRect();tooltip.style.left=`${clamp(e.clientX-rect.left+14,8,rect.width-270)}px`;tooltip.style.top=`${clamp(e.clientY-rect.top+14,8,rect.height-70)}px`}
+      function updateUi(){const cfg=configs[state.mode];ui.modeTitle.textContent=`${cfg.title} · ${cfg.radius} ${cfg.unit} radius`;ui.modeNote.textContent=cfg.note;ui.count.textContent=state.objects.length.toLocaleString();ui.radius.textContent=`${cfg.radius} ${cfg.unit}`;ui.plane.textContent=cfg.plane;ui.epoch.textContent=state.mode==="solar"?data.epoch:"catalog epoch";ui.selected.innerHTML=details(state.selected);document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===state.mode))}
+      function setMode(mode){state.mode=mode;state.yaw=-.55;state.pitch=.35;state.zoom=1;state.hover=null;state.selected=null;state.objects=objectsFor(mode);state.dirty=true;tooltip.style.display="none";updateUi()}
+      function find(){const query=ui.search.value.trim().toLowerCase();if(!query)return;const names=o=>[o.name,o.rawName||""].map(n=>n.toLowerCase()),found=state.objects.find(o=>names(o).includes(query))||state.objects.find(o=>names(o).some(n=>n.includes(query)));if(found){state.selected=found;if(found.distance>0)state.zoom=clamp(configs[state.mode].radius/(found.distance*3),1,state.mode==="solar"?40:6);state.dirty=true;updateUi()}else{ui.selected.innerHTML=`<h3>No match</h3><p>No visible object contains “${ui.search.value.replace(/[<>]/g,"")}”. Try another scale.</p>`}}
+      function resize(){const dpr=Math.min(devicePixelRatio||1,2),r=canvas.getBoundingClientRect();canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);state.dirty=true}
+      canvas.addEventListener("pointerdown",e=>{state.drag={x:e.clientX,y:e.clientY,yaw:state.yaw,pitch:state.pitch};state.moved=false;canvas.setPointerCapture(e.pointerId)});
+      canvas.addEventListener("pointermove",e=>{const r=canvas.getBoundingClientRect();if(state.drag){const dx=e.clientX-state.drag.x,dy=e.clientY-state.drag.y;state.moved=Math.hypot(dx,dy)>4;state.yaw=state.drag.yaw+dx*.008;state.pitch=clamp(state.drag.pitch+dy*.008,-1.45,1.45);state.dirty=true}else{state.hover=nearest(e.clientX-r.left,e.clientY-r.top);state.dirty=true;updateTooltip(e)}});
+      canvas.addEventListener("pointerup",e=>{if(!state.moved){const r=canvas.getBoundingClientRect();state.selected=nearest(e.clientX-r.left,e.clientY-r.top);updateUi();state.dirty=true}state.drag=null});
+      canvas.addEventListener("pointerleave",()=>{if(!state.drag){state.hover=null;tooltip.style.display="none";state.dirty=true}});
+      canvas.addEventListener("wheel",e=>{e.preventDefault();state.zoom=clamp(state.zoom*Math.exp(-e.deltaY*.001),.6,state.mode==="solar"?40:6);state.dirty=true},{passive:false});
+      document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));ui.labels.addEventListener("change",()=>state.dirty=true);ui.groups.addEventListener("change",()=>setMode(state.mode));ui.find.addEventListener("click",find);ui.search.addEventListener("keydown",e=>{if(e.key==="Enter")find()});ui.reset.addEventListener("click",()=>setMode(state.mode));
+      new ResizeObserver(resize).observe(canvas);function frame(){if(state.dirty)render();requestAnimationFrame(frame)}const params=new URLSearchParams(location.search),requested=params.get("scale");setMode(configs[requested]?requested:"solar");if(params.get("q")){ui.search.value=params.get("q");find()}resize();requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
